@@ -1,0 +1,666 @@
+<head>
+
+  <meta charset="utf-8">
+  <title>Zaxan | Accounting </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!-- Styles -->
+  <link href="/css/bootstrap.min.css" rel="stylesheet">
+  <style type="text/css">
+    body {
+      padding-top: 60px;
+      overflow-x: hidden;
+      overflow-y: scroll;
+    }
+    div.row, div.row-fluid {
+      margin-bottom: 10px;
+    }
+    table thead tr th, table tfoot tr th {
+      background-color: #eeeeee;
+      border: 1px solid #FFF;
+    }
+    th.hcenter, td.hcenter {
+      text-align: center;
+    }
+    th.vcenter, td.vcenter {
+      vertical-align: middle;
+    }
+    ul.dropdown-menu {
+      text-align: left;
+    }
+    div.tab-content {
+      overflow-x: hidden;
+    }
+    iframe {
+      box-sizing: border-box;
+    }
+    .wysihtml5-action-active, .wysihtml5-command-dialog-opened, .wysihtml5-command-active {
+      background-image: none;
+      -webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15),0 1px 2px rgba(0, 0, 0, 0.05);
+      -moz-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15),0 1px 2px rgba(0, 0, 0, 0.05);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15),0 1px 2px rgba(0, 0, 0, 0.05);
+      background-color: #E6E6E6;
+      background-color: #D9D9D9;
+      outline: 0;
+    }
+  </style>
+  <link href="/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="/css/bootstrap-editable.css" rel="stylesheet">
+  <link href="/css/select2.css" rel="stylesheet">
+  <link href="/css/font-awesome.min.css" rel="stylesheet">
+  <!--[if IE 7]>
+    <link href="css/font-awesome-ie7.min.css" rel="stylesheet">
+  <![endif]-->
+  <link href="/css/toastr.min.css" rel="stylesheet">
+  <link href="/css/index.css" rel="stylesheet">
+  <link href="/css/wysiwyg-color.css" rel="stylesheet">
+
+  <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+  <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <!-- JavaScript -->
+  <script src="/js/jquery-1.9.1.min.js"></script>             <!-- 1.9.1 -->
+  <script src="/js/bootstrap.min.js"></script>                <!-- 2.3.1 -->
+  <script src="/js/bootstrap-editable.min.js"></script>                <!-- 2.3.1 -->
+  <script src="/js/wysihtml5-parser-rules-0.3.0.js"></script> <!-- 0.3.0 -->
+  <script src="/js/wysihtml5-0.3.0.min.js"></script>          <!-- 0.3.0 -->
+  <script src="/js/toastr.min.js"></script>                   <!-- 1.1.2 -->
+  <script src="/js/waypoints.min.js"></script>                <!-- 2.0.1 -->
+  <script src="/js/waypoints-sticky.min.js"></script>         <!-- 2.0.1 -->
+  <script src="/js/jquery.scrollTo.min.js"></script>          <!-- 1.4.5 BETA -->
+  <script src="/js/jquery.blockUI.min.js"></script>           <!-- 2.55 -->
+  <script src="/js/date.f-0.5.0-min.js"></script>             <!-- 0.5.0 -->
+  <script src="/js/moment.min.js"></script>             <!-- 0.5.0 -->
+  <script src="/js/select2.min.js"></script>             <!-- 0.5.0 -->
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+    
+    });
+  </script>
+
+  <!-- Icons -->
+  <link rel="shortcut icon" href="ico/favicon.ico">
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="ico/apple-touch-icon-144-precomposed.png">
+  <link rel="apple-touch-icon-precomposed" sizes="114x114" href="ico/apple-touch-icon-114-precomposed.png">
+  <link rel="apple-touch-icon-precomposed" sizes="72x72" href="ico/apple-touch-icon-72-precomposed.png">
+  <link rel="apple-touch-icon-precomposed" href="ico/apple-touch-icon-57-precomposed.png">
+
+</head>
+
+<body>
+
+  {{> navbar}}
+
+  <div class="container-fluid">
+
+    {{#if currentUser}}
+    
+      {{#if isPageHome}}
+        {{#if areNoActivities}}
+          {{#unless isAdmin}}
+            <div class="row-fluid">
+              <div class="span6 offset3">
+                <p class="text-error">You have not been assigned as a contributor to any available projects, nor are you allowed to create projects. Contact a site administrator for further information.</p>
+              </div>
+            </div>
+          {{/unless}}
+        {{/if}}
+        <div class="row-fluid">
+          <div class="span2">
+            <div class="row-fluid">
+              <div class="span12">
+                {{> activityList}}
+              </div>
+            </div>
+          </div>
+          <div class="span10">
+            <div class="row-fluid">
+              <div class="span12">
+                {{> activityInfo}}
+              </div>
+            </div>
+            {{#if isActivitySelected}}
+              <div class="row-fluid">
+                <div class="span7">
+                  <div class="row-fluid">
+                    <div class="span12">
+                      {{> participantListFilters}}
+                    </div>
+                  </div>
+                  <div class="row-fluid">
+                    <div class="span12">
+                      {{> participantList}}
+                    </div>
+                  </div>
+                </div>
+                <div class="span5">
+                  {{> participantInfo}}
+                </div>
+              </div>
+            {{/if}}
+          </div>
+        </div>
+      {{/if}}
+      {{#if isPageUsers}}
+        <div class="row-fluid">
+          <div class="span6 offset3">
+            <div class="row-fluid">
+              <div class="span12">
+                {{> userList}}
+              </div>
+            </div>
+          </div>
+        </div>
+      {{/if}}
+      
+    {{/if}}
+
+  </div>
+
+  <div id="loadingActivities" style="display:none;">
+    <i class="icon-spinner icon-spin icon-3x"></i>
+  </div>
+
+  <div id="loadingParticipants" style="display:none;">
+    <i class="icon-spinner icon-spin icon-3x"></i>
+  </div>
+
+</body>
+
+<template name="navbar">
+  <div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="container-fluid">
+        <a class="brand" href="#">Zaxan</a>
+        {{#if currentUser}}
+        <ul class="nav">
+          <li class="{{activePage 'home'}}"><a href="#home">Home</a></li>
+          {{#if isAdmin}}
+            <li class="{{activePage 'users'}}"><a href="#users">Users</a></li>
+          {{/if}}
+        </ul>
+        {{/if}}
+        <ul class="nav pull-right">
+          <li><a>{{loginButtons align="right"}}</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template name="activityList">
+  <div id="activityList">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th class="vcenter" colspan="2">Activities</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#if areNoActivities}}
+          <tr>
+            <td colspan="2" class="vcenter text-error">No Activities Found</td>
+          </tr>
+        {{/if}}
+        <tr>
+          <td colspan="2" class="vcenter">Add new: <a href="#" id="xedit-CreateActivityTitle"></a></td>
+        </tr>
+        {{#unless areNoActivities}}
+          {{#each activities}}
+            {{> activity}}
+          {{/each}}
+        {{/unless}}
+      </tbody>
+    </table>
+  </div>
+</template>
+
+<template name="activity">
+  <tr>
+    <td class="vcenter activity {{selectedActivity}}">{{activityTitle}} at {{activityLocation}}</td><td id="{{_id}}" class="activityDelete"><i class="icon-remove pull-right"></i></td>
+  </tr>
+</template>
+
+<template name="activityInfo">
+  <div id="activityInfo">
+    <ul class="nav nav-pills" id="activityInfoTabs">
+      <li><a href="#activityInfoOverview" data-toggle="pill">Overview</a></li>
+      {{#if isAdmin}}
+        <!-- <li><a href="#activityInfoCreate" data-toggle="pill">Create</a></li>
+        <li><a href="#activityInfoUpdate" data-toggle="pill">Update</a></li>
+        <li><a href="#activityInfoDelete" data-toggle="pill">Delete</a></li> -->
+      {{/if}}
+    </ul>
+    <div class="tab-content">
+      <div class="tab-pane" id="activityInfoOverview">
+        {{#if isActivitySelected}}
+          {{#with activity}}
+            <table class="table table-bordered">
+              <tbody>
+                <tr><td class="vcenter"><h2><a href="#" id="xedit-activityInfoOverview_ActivityTitle">{{activityTitle}}</a>
+                at <a href="#" id="xedit-activityInfoOverview_ActivityLocation">{{activityLocation}}</a>
+                on <a href="#" id="xedit-activityInfoOverview_ActivityDate">{{formattedActivityDate}}</a>
+                Total Cost: Rs. <a href="#" id="xedit-activityInfoOverview_ActivityCost">{{activityCost}}</a></h2></td></tr>
+              </tbody>
+            </table>
+          {{/with}} <!-- activity -->
+          <div class="row-fluid">
+            <div class="span2">
+              <span id="activityInfoOverview_TotalParticipants">
+                <table class="table table-bordered">
+                  <thead><tr><th class="vcenter hcenter">TOTAL</th></tr></thead>
+                  <tbody><tr><td class="vcenter hcenter total"><h4>{{getParticipantCount}}</h4></td></tr></tbody>
+                </table>
+              </span>
+            </div> <!-- span2 -->
+            <div class="span10">
+              <span id="activityInfoOverview_TotalsByParticipantStatus">
+                <table class="table table-bordered">
+                  <thead>
+                    <tr>
+                      <th class="vcenter hcenter">Paid</th>
+                      <th class="vcenter hcenter">Not Paid</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <td class="vcenter hcenter paid"><h4>{{getParticipantStatusCount 'Paid'}}</h4></td>
+                    <td class="vcenter hcenter notpaid"><h4>{{getParticipantStatusCount 'Not Paid'}}</h4></td>
+                  </tbody>
+                </table>
+              </span>
+            </div> <!-- span10 -->
+          </div> <!-- row-fluid -->
+        {{/if}} <!-- isActivitySelected -->
+        {{#unless isActivitySelected}}
+          <div>No Activity Selected</div>
+        {{/unless}}
+      </div> <!-- activityInfoOverview -->
+      {{> activityInfoCreate}}
+      <div class="tab-pane" id="activityInfoUpdate">
+        {{#if isActivitySelected}}
+          <form>
+            <fieldset>
+              {{#if isDebug}}
+                <div class="controls controls-row">
+                  <label><strong>Activity _id</strong></label>
+                  <input class="input-block-level" id="activityInfoUpdate_Activity_id" type="text" disabled>
+                </div>
+              {{/if}}
+              <div class="controls controls-row">
+                <label><strong>Activity Title</strong></label>
+                <input class="input-block-level" id="activityInfoUpdate_ActivityTitle" type="text">
+              </div>
+              <div class="controls controls-row">
+                <label><strong>Activity Location</strong></label>
+                <input class="input-block-level" id="activityInfoUpdate_ActivityLocation" type="text">
+              </div>
+              <div class="controls controls-row">
+                <label><strong>Activity Cost</strong></label>
+                <input class="input-block-level" id="activityInfoUpdate_ActivityCost" type="text">
+              </div>
+              <div class="controls controls-row">
+                <div class="btn-toolbar">
+                  <button type="button" id="activityInfoUpdate_UpdateActivity" class="btn btn-primary pull-right">Update Activity <i class="icon-ok icon-white"></i></button>
+                </div>
+              </div>
+              <div class="controls controls-row">
+                <div class="btn-toolbar">
+                  <button type="button" id="activityInfoUpdate_CancelActivity" class="btn pull-right">Cancel <i class="icon-ban-circle"></i></button>
+                </div>
+              </div>
+            </fieldset>
+          </form>
+        {{/if}}
+        {{#unless isActivitySelected}}
+          <div>No Activity Selected</div>
+        {{/unless}}
+      </div>
+      <div class="tab-pane" id="activityInfoDelete">
+        {{#if isActivitySelected}}
+          <form>
+            <fieldset>
+              {{#if isDebug}}
+                <div class="controls controls-row">
+                  <label><strong>Activity _id</strong></label>
+                  <input class="input-block-level" id="activityInfoDelete_Activity_id" type="text" disabled>
+                </div>
+                <div class="controls controls-row">
+                  <div class="btn-toolbar">
+              {{/if}}
+                    <button type="button" id="activityInfoDelete_DeleteActivity" class="btn btn-danger pull-right">Delete Activity <i class="icon-remove icon-white"></i></button>
+              {{#if isDebug}}
+                  </div>
+                </div>
+              {{/if}}
+            </fieldset>
+          </form>
+        {{/if}}
+        {{#unless isActivitySelected}}
+          <div>No Activity Selected</div>
+        {{/unless}}
+      </div>
+    </div>
+  </div>
+</template>
+
+<template name="activityInfoOverview">
+</template>
+
+<template name="activityInfoCreate">
+      <div class="tab-pane" id="activityInfoCreate">
+        <form>
+          <fieldset>
+            <div class="controls controls-row">
+              <label><strong>Activity Title</strong></label>
+              <input class="input-block-level" id="activityInfoCreate_ActivityTitle" type="text">
+            </div>
+            <div class="controls controls-row">
+              <label><strong>Activity Location</strong></label>
+            </div>
+            <div class="controls controls-row">
+              <input class="input-block-level" id="activityInfoCreate_ActivityLocation" type="text">
+            </div>
+            <div class="controls controls-row">
+              <label><strong>Activity Cost</strong></label>
+            </div>
+            <div class="controls controls-row">
+              <input class="input-block-level" id="activityInfoCreate_ActivityCost" type="text">
+            </div>
+            <div class="controls controls-row">
+              <div class="btn-toolbar">
+                <button type="button" id="activityInfoCreate_CreateActivity" class="btn btn-primary pull-right">Create Activity <i class="icon-ok icon-white"></i></button>
+              </div>
+            </div>
+            <div class="controls controls-row">
+              <div class="btn-toolbar">
+                <button type="button" id="activityInfoCreate_CancelActivity" class="btn pull-right">Cancel <i class="icon-ban-circle"></i></button>
+              </div>
+            </div>
+          </fieldset>
+        </form>
+      </div>
+</template>
+
+<template name="activityInfoUpdate">
+</template>
+
+<template name="activityInfoDelete">
+</template>
+
+
+<template name="participantListFilters">
+  <div id="participantListFilters">
+    <div id="participantListStatusFilters">
+        <fieldset>
+          <div class="controls controls-row">
+            <label><strong>Status Filter</strong></label>
+            <button type="button" class="btn participantListFilters_Status {{selectedParticipantStatusFilter 'Paid'}}" data-status="Paid"><i class="icon-sign-blank icon-participant-status-paid icon-participant-status-shadow"></i> Paid</button>
+            <button type="button" class="btn participantListFilters_Status {{selectedParticipantStatusFilter 'Not Paid'}}" data-status="Not Paid"><i class="icon-sign-blank icon-participant-status-not-paid icon-participant-status-shadow"></i> Not Paid</button>
+          </div>
+        </fieldset>
+    </div>
+  </div>
+</template>
+
+<template name="participantList">
+  <div id="participantList">
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          {{#if isDebug}}
+            <th class="vcenter">_id</th>
+          {{/if}}
+          <th class="vcenter hcenter">#</th>
+          <th class="vcenter">Name</th>
+          <th class="vcenter">Paid</th>
+          <th class="vcenter">Cost</th>
+          <th class="vcenter hcenter">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#if areNoParticipants}}
+          <tr>
+            {{#if isDebug}}
+              <td class="vcenter text-error" colspan="5">No Participants Found</td>
+            {{/if}}
+            {{#unless isDebug}}
+              <td class="vcenter text-error" colspan="4">No Participants Found</td>
+            {{/unless}}
+          </tr>
+        {{/if}}
+        {{#unless areNoParticipants}}
+          {{#each participants}}
+            {{> participant}}
+          {{/each}}
+        {{/unless}}
+      </tbody>
+    </table>
+  </div>
+</template>
+
+<template name="participant">
+  <tr class="participant {{participantStatusStyle}} {{selectedParticipant}}">
+    {{#if isDebug}}
+      <td class="vcenter">{{_id}}</td>
+    {{/if}}
+    <td class="vcenter hcenter"><h4>{{participantNumber}}</h4></td>
+    <td class="vcenter">{{participantName}}</td>
+    <td class="vcenter">{{participantPaid}}</td>
+    <td class="vcenter">{{participantCost}}</td>
+    <td class="vcenter hcenter">
+      <div class="btn-group">
+        <a class="btn dropdown-toggle participant-status-dropdown-toggle" data-toggle="dropdown" href="#">{{participantStatus}}</a>
+        <ul class="dropdown-menu">
+          <li><a class="participantStatus" data-status="Paid" href="#"><i class="icon-sign-blank icon-participant-status-paid icon-participant-status-shadow"></i> Paid</a></li>
+          <li><a class="participantStatus" data-status="Not Paid" href="#"><i class="icon-sign-blank icon-participant-status-not-paid icon-participant-status-shadow"></i> Not Paid</a></li>
+        </ul>
+      </div>
+    </td>
+  </tr>
+</template>
+
+<template name="participantInfo">
+  <div id="participantInfo">
+    <ul class="nav nav-tabs" id="participantInfoTabs">
+      <li><a href="#participantInfoCreate" data-toggle="tab">Create</a></li>
+      <li><a href="#participantInfoUpdate" data-toggle="tab">Update</a></li>
+      <li><a href="#participantInfoDelete" data-toggle="tab">Delete</a></li>
+    </ul>
+    <div class="tab-content">
+      <div class="tab-pane" id="participantInfoCreate">
+        <form>
+          <fieldset>
+            <div class="controls controls-row">
+              <label><strong>Participant Name</strong></label>
+              <input id="participantInfoCreate_ParticipantId" type="hidden">
+              <input class="input-block-level" id="participantInfoCreate_ParticipantName" type="text">
+            </div>
+            <div class="controls controls-row">
+              <label><strong>Paid</strong></label>
+              <input class="input-block-level" id="participantInfoCreate_ParticipantPaid" type="text">
+            </div>
+            <div class="controls controls-row">
+              <label><strong>Cost</strong></label>
+              <input class="input-block-level" id="participantInfoCreate_ParticipantCost" type="text">
+            </div>
+            <div class="controls controls-row">
+              <div class="btn-toolbar">
+                <button type="button" id="participantInfoCreate_CreateParticipant" class="btn btn-primary pull-right">Create Participant <i class="icon-ok icon-white"></i></button>
+              </div>
+            </div>
+            <div class="controls controls-row">
+              <div class="btn-toolbar">
+                <button type="button" id="participantInfoCreate_CancelParticipant" class="btn pull-right">Cancel <i class="icon-ban-circle"></i></button>
+              </div>
+            </div>
+          </fieldset>
+        </form>
+      </div>
+      <div class="tab-pane" id="participantInfoUpdate">
+        {{#if isParticipantSelected}}
+          {{#with participant}}
+            <table class="table table-bordered">
+              <tbody>
+                <tr class="participant {{participantStatusStyle}}">
+                  <td class="vcenter hcenter"><h2>{{participanteNumber}}</h2></td>
+                  <td class="vcenter hcenter">{{participantName}}</td>
+                  <td class="vcenter hcenter">Paid: {{participantPaid}}</td>
+                  <td class="vcenter hcenter">Cost: {{participantCost}}</td>
+                  <td class="vcenter hcenter">
+                    <div class="btn-group">
+                      <a class="btn dropdown-toggle participant-status-dropdown-toggle" data-toggle="dropdown" href="#">{{participantStatus}}</a>
+                      <ul class="dropdown-menu">
+                        <li><a class="participantStatus" data-status="Paid" href="#"><i class="icon-sign-blank icon-participant-status-paid icon-participant-status-shadow"></i> Paid</a></li>
+                        <li><a class="participantStatus" data-status="Not Paid" href="#"><i class="icon-sign-blank icon-participant-status-not-paid icon-participant-status-shadow"></i> Not Paid</a></li>
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          {{/with}}
+          <form>
+            <fieldset>
+              {{#if isDebug}}
+                <div class="controls controls-row">
+                  <label><strong>Participant _id</strong></label>
+                  <input class="input-block-level" id="participantInfoUpdate_Participant_id" type="text" disabled>
+                </div>
+              {{/if}}
+              <div class="controls controls-row">
+                <label><strong>Participant Name</strong></label>
+                <input id="participantInfoUpdate_ParticipantId" type="hidden">
+                <input class="input-block-level" id="participantInfoUpdate_ParticipantName" type="text">
+              </div>
+              <div class="controls controls-row">
+                <label><strong>Paid</strong></label>
+                <input class="input-block-level" id="participantInfoUpdate_ParticipantPaid" type="text">
+              </div>
+              <div class="controls controls-row">
+                <label><strong>Cost</strong></label>
+                <input class="input-block-level" id="participantInfoUpdate_ParticipantCost" type="text">
+              </div>
+              <div class="controls controls-row">
+                <div class="btn-toolbar">
+                  <button type="button" id="participantInfoUpdate_UpdateParticipant" class="btn btn-primary pull-right">Update Participant <i class="icon-ok icon-white"></i></button>
+                </div>
+              </div>
+              <div class="controls controls-row">
+                <div class="btn-toolbar">
+                  <button type="button" id="participantInfoUpdate_CancelParticipant" class="btn pull-right">Cancel <i class="icon-ban-circle"></i></button>
+                </div>
+              </div>
+            </fieldset>
+          </form>
+        {{/if}}
+        {{#unless isParticipantSelected}}
+          <div>No Participant Selected</div>
+        {{/unless}}
+      </div>
+      <div class="tab-pane" id="participantInfoDelete">
+        {{#if isParticipantSelected}}
+          <form>
+            <fieldset>
+              {{#if isDebug}}
+                <div class="controls controls-row">
+                  <label><strong>Participant _id</strong></label>
+                  <input class="input-block-level" id="participantInfoDelete_Participant_id" type="text" disabled>
+                </div>
+                <div class="controls controls-row">
+                  <div class="btn-toolbar">
+              {{/if}}
+                    <button type="button" id="participantInfoDelete_DeleteParticipant" class="btn btn-danger pull-right">Delete Participant <i class="icon-remove icon-white"></i></button>
+              {{#if isDebug}}
+                  </div>
+                </div>
+              {{/if}}
+            </fieldset>
+          </form>
+        {{/if}}
+        {{#unless isParticipantSelected}}
+          <div>No Participant Selected</div>
+        {{/unless}}
+      </div>
+    </div>
+  </div>
+</template>
+
+<template name="userList">
+  <div id="userList">
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          {{#if isDebug}}
+            <th class="vcenter">_id</th>
+          {{/if}}
+          <th class="vcenter">USER</th>
+          <th class="vcenter hcenter">ROLE</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each users}}
+          {{> user}}
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</template>
+
+<template name="user">
+  <tr class="user">
+    {{#if isDebug}}
+      <td class="vcenter">{{_id}}</td>
+    {{/if}}
+    <td class="vcenter">{{email}}</td>
+    {{#if isAdmin}}
+      <td class="vcenter hcenter">
+        <div class="btn-group">
+          <a class="btn dropdown-toggle user-role-dropdown-toggle" data-toggle="dropdown" href="#">{{role}}</a>
+          <ul class="dropdown-menu">
+            <li><a class="role" href="#">admin</a></li>
+            <li><a class="role" href="#">user</a></li>
+          </ul>
+        </div>
+      </td>
+    {{/if}}
+    {{#unless isAdmin}}
+      <td class="vcenter hcenter">{{role}}</td>
+    {{/unless}}
+  </tr>
+</template>
+
+<template name="wysihtml5Toolbar">
+  <div class="btn-toolbar">
+    <div class="btn-group">
+      <button type="button" class="btn" data-wysihtml5-command="bold" title="Bold (CTRL+B)"><i class="icon-bold"></i></button>
+      <button type="button" class="btn" data-wysihtml5-command="italic" title="Italic (CTRL+I)"><i class="icon-italic"></i></button>
+      <button type="button" class="btn" data-wysihtml5-command="underline" title="Underline (CTRL+U)"><i class="icon-underline"></i></button>
+    </div>
+    <div class="btn-group">
+      <button type="button" class="btn" data-wysihtml5-command="insertUnorderedList" title="Unordered List"><i class="icon-list-ul"></i></button>
+      <button type="button" class="btn" data-wysihtml5-command="insertOrderedList" title="Ordered List"><i class="icon-list-ol"></i></button>
+    </div>
+    <div class="btn-group">
+      <button type="button" class="btn" data-wysihtml5-command="Outdent" title="Indent Left"><i class="icon-indent-left"></i></button>
+      <button type="button" class="btn" data-wysihtml5-command="Indent" title="Indent Right"><i class="icon-indent-right"></i></button>
+    </div>
+    <!--
+    <div class="btn-group">
+      <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">Color</a>
+      <ul class="dropdown-menu">
+        <li><a data-wysihtml5-command="foreColor" data-wysihtml5-command-value="red" href="#">Red</a></li>
+        <li><a data-wysihtml5-command="foreColor" data-wysihtml5-command-value="green" href="#">Green</a></li>
+        <li><a data-wysihtml5-command="foreColor" data-wysihtml5-command-value="blue" href="#">Blue</a></li>
+      </ul>
+    </div>
+    -->
+    <div class="btn-group">
+      <button type="button" class="btn" data-wysihtml5-action="change_view" title="Show HTML"><i class="icon-pencil"></i></button>
+    </div>
+  </div>
+</template>

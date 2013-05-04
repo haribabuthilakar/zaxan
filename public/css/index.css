@@ -1,0 +1,136 @@
+#activityInfo textarea {
+  height: 110px;
+}
+
+#participantInfo textarea {
+  height: 410px;
+}
+
+#activityInfo hr, #participantInfo hr {
+  display: block;
+  height: 1px;
+  border: 0;
+  border-top: 1px solid #ddd;
+  margin: 1em 0;
+  padding: 0;
+}
+
+#activityInfoOverview #activityInfoOverview_TotalsByParticipantStatus td {
+  width: 20%;
+}
+
+#activityInfoOverview #activityInfoOverview_TotalParticipants td.total {
+  background-color: #FDFDFD;
+}
+
+.activity {
+  cursor: pointer;
+}
+
+.activityDelete {
+  cursor: pointer;
+  color: #900;
+}
+
+#activityList {
+  background-image: url("/img/binding_light.png");
+}
+
+.activity.selected {
+  color: #FFF;
+  background-color: #222;
+}
+
+.activityUser {
+  cursor: pointer;
+}
+
+.participant {
+  cursor: pointer;
+}
+
+.participant.paid td,
+#activityInfoOverview td.paid {
+  background-color: #E5FFE5;
+}
+
+.participant.notpaid td,
+#activityInfoOverview td.notpaid {
+  background-color: #FFFFE5;
+}
+
+.participant.assigned td,
+#activityInfoOverview td.assigned {
+  background-color: #E5FFE5;
+}
+
+.participant.resolved td,
+#activityInfoOverview td.resolved {
+  background-color: #E5F2FF;
+}
+
+.participant.closed td,
+#activityInfoOverview td.closed {
+  background-color: #F5F5F5;
+}
+
+.participant.closed td {
+  color: #AAA;
+  text-decoration: line-through;
+}
+
+.participant.selected td {
+  color: #FFF;
+  background-color: #222;
+}
+
+.participant.selected td.closed {
+  color: #CCC;
+}
+
+.icon-participant-status-paid {
+  color: #E5FFE5;
+}
+
+.icon-participant-status-not-paid {
+  color: #FFFFE5;
+}
+
+.icon-participant-status-assigned {
+  color: #E5FFE5;
+}
+
+.icon-participant-status-resolved {
+  color: #E5F2FF;
+}
+
+.icon-participant-status-closed {
+  color: #F5F5F5;
+}
+
+.icon-participant-status-shadow {
+  text-shadow: 1px 1px 1px #ccc;
+}
+
+.participant-status-dropdown-toggle, .user-role-dropdown-toggle {
+  min-width: 79px;
+  max-width: 79px;
+}
+
+#participantInfo.stuck {
+  position: fixed;
+  width: 32.42%;
+}
+
+@media only screen and (min-width: 768px) and (max-width: 979px) {
+  #participantInfo.stuck {
+    top: 10px;
+  }
+}
+
+@media only screen and (min-width: 980px) {
+  #participantInfo.stuck {
+    top: 51px;
+  }
+}
+
