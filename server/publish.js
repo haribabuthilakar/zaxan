@@ -40,10 +40,10 @@ Meteor.publish("userData", function() {
 });
 Meteor.publish("allUserData", function() {
   return Meteor.users.find({}, {
-    fields : {
-      "emails" : 1,
-      "role" : 1
-    }
+//    fields : {
+//      "emails" : 1,
+//      "role" : 1
+//    }
   });
 });
 
@@ -146,7 +146,7 @@ Locations.allow({
       return false;
   }
 });
-Meteor.publish('locations', function() {
-  return Activities.find();
+Meteor.publish("locations", function() {
+  return Locations.find({}, {fields: {location: 1}});
 });
 

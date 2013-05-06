@@ -36,15 +36,6 @@
     iframe {
       box-sizing: border-box;
     }
-    .wysihtml5-action-active, .wysihtml5-command-dialog-opened, .wysihtml5-command-active {
-      background-image: none;
-      -webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15),0 1px 2px rgba(0, 0, 0, 0.05);
-      -moz-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15),0 1px 2px rgba(0, 0, 0, 0.05);
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15),0 1px 2px rgba(0, 0, 0, 0.05);
-      background-color: #E6E6E6;
-      background-color: #D9D9D9;
-      outline: 0;
-    }
   </style>
   <link href="/css/bootstrap-responsive.min.css" rel="stylesheet">
   <link href="/css/bootstrap-editable.css" rel="stylesheet">
@@ -66,8 +57,6 @@
   <script src="/js/jquery-1.9.1.min.js"></script>             <!-- 1.9.1 -->
   <script src="/js/bootstrap.min.js"></script>                <!-- 2.3.1 -->
   <script src="/js/bootstrap-editable.min.js"></script>                <!-- 2.3.1 -->
-  <script src="/js/wysihtml5-parser-rules-0.3.0.js"></script> <!-- 0.3.0 -->
-  <script src="/js/wysihtml5-0.3.0.min.js"></script>          <!-- 0.3.0 -->
   <script src="/js/toastr.min.js"></script>                   <!-- 1.1.2 -->
   <script src="/js/waypoints.min.js"></script>                <!-- 2.0.1 -->
   <script src="/js/waypoints-sticky.min.js"></script>         <!-- 2.0.1 -->
@@ -126,7 +115,7 @@
             </div>
             {{#if isActivitySelected}}
               <div class="row-fluid">
-                <div class="span7">
+                <div class="span12">
                   <div class="row-fluid">
                     <div class="span12">
                       {{> participantListFilters}}
@@ -137,9 +126,6 @@
                       {{> participantList}}
                     </div>
                   </div>
-                </div>
-                <div class="span5">
-                  {{> participantInfo}}
                 </div>
               </div>
             {{/if}}
@@ -181,7 +167,8 @@
         <ul class="nav">
           <li class="{{activePage 'home'}}"><a href="#home">Home</a></li>
           {{#if isAdmin}}
-            <li class="{{activePage 'users'}}"><a href="#users">Users</a></li>
+            <li class="{{activePage 'users'}}"><a href="#users">Manage Users</a></li>
+            <li class="{{activePage 'locations'}}"><a href="#locations">Manage Locations</a></li>
           {{/if}}
         </ul>
         {{/if}}
@@ -228,26 +215,14 @@
 
 <template name="activityInfo">
   <div id="activityInfo">
-    <ul class="nav nav-pills" id="activityInfoTabs">
-      <li><a href="#activityInfoOverview" data-toggle="pill">Overview</a></li>
-      {{#if isAdmin}}
-        <!-- <li><a href="#activityInfoCreate" data-toggle="pill">Create</a></li>
-        <li><a href="#activityInfoUpdate" data-toggle="pill">Update</a></li>
-        <li><a href="#activityInfoDelete" data-toggle="pill">Delete</a></li> -->
-      {{/if}}
-    </ul>
-    <div class="tab-content">
-      <div class="tab-pane" id="activityInfoOverview">
         {{#if isActivitySelected}}
           {{#with activity}}
-            <table class="table table-bordered">
-              <tbody>
+            <table class="table"><tbody>
                 <tr><td class="vcenter"><h2><a href="#" id="xedit-activityInfoOverview_ActivityTitle">{{activityTitle}}</a>
                 at <a href="#" id="xedit-activityInfoOverview_ActivityLocation">{{activityLocation}}</a>
                 on <a href="#" id="xedit-activityInfoOverview_ActivityDate">{{formattedActivityDate}}</a>
                 Total Cost: Rs. <a href="#" id="xedit-activityInfoOverview_ActivityCost">{{activityCost}}</a></h2></td></tr>
-              </tbody>
-            </table>
+            </tbody></table>
           {{/with}} <!-- activity -->
           <div class="row-fluid">
             <div class="span2">
@@ -279,119 +254,8 @@
         {{#unless isActivitySelected}}
           <div>No Activity Selected</div>
         {{/unless}}
-      </div> <!-- activityInfoOverview -->
-      {{> activityInfoCreate}}
-      <div class="tab-pane" id="activityInfoUpdate">
-        {{#if isActivitySelected}}
-          <form>
-            <fieldset>
-              {{#if isDebug}}
-                <div class="controls controls-row">
-                  <label><strong>Activity _id</strong></label>
-                  <input class="input-block-level" id="activityInfoUpdate_Activity_id" type="text" disabled>
-                </div>
-              {{/if}}
-              <div class="controls controls-row">
-                <label><strong>Activity Title</strong></label>
-                <input class="input-block-level" id="activityInfoUpdate_ActivityTitle" type="text">
-              </div>
-              <div class="controls controls-row">
-                <label><strong>Activity Location</strong></label>
-                <input class="input-block-level" id="activityInfoUpdate_ActivityLocation" type="text">
-              </div>
-              <div class="controls controls-row">
-                <label><strong>Activity Cost</strong></label>
-                <input class="input-block-level" id="activityInfoUpdate_ActivityCost" type="text">
-              </div>
-              <div class="controls controls-row">
-                <div class="btn-toolbar">
-                  <button type="button" id="activityInfoUpdate_UpdateActivity" class="btn btn-primary pull-right">Update Activity <i class="icon-ok icon-white"></i></button>
-                </div>
-              </div>
-              <div class="controls controls-row">
-                <div class="btn-toolbar">
-                  <button type="button" id="activityInfoUpdate_CancelActivity" class="btn pull-right">Cancel <i class="icon-ban-circle"></i></button>
-                </div>
-              </div>
-            </fieldset>
-          </form>
-        {{/if}}
-        {{#unless isActivitySelected}}
-          <div>No Activity Selected</div>
-        {{/unless}}
-      </div>
-      <div class="tab-pane" id="activityInfoDelete">
-        {{#if isActivitySelected}}
-          <form>
-            <fieldset>
-              {{#if isDebug}}
-                <div class="controls controls-row">
-                  <label><strong>Activity _id</strong></label>
-                  <input class="input-block-level" id="activityInfoDelete_Activity_id" type="text" disabled>
-                </div>
-                <div class="controls controls-row">
-                  <div class="btn-toolbar">
-              {{/if}}
-                    <button type="button" id="activityInfoDelete_DeleteActivity" class="btn btn-danger pull-right">Delete Activity <i class="icon-remove icon-white"></i></button>
-              {{#if isDebug}}
-                  </div>
-                </div>
-              {{/if}}
-            </fieldset>
-          </form>
-        {{/if}}
-        {{#unless isActivitySelected}}
-          <div>No Activity Selected</div>
-        {{/unless}}
-      </div>
-    </div>
   </div>
 </template>
-
-<template name="activityInfoOverview">
-</template>
-
-<template name="activityInfoCreate">
-      <div class="tab-pane" id="activityInfoCreate">
-        <form>
-          <fieldset>
-            <div class="controls controls-row">
-              <label><strong>Activity Title</strong></label>
-              <input class="input-block-level" id="activityInfoCreate_ActivityTitle" type="text">
-            </div>
-            <div class="controls controls-row">
-              <label><strong>Activity Location</strong></label>
-            </div>
-            <div class="controls controls-row">
-              <input class="input-block-level" id="activityInfoCreate_ActivityLocation" type="text">
-            </div>
-            <div class="controls controls-row">
-              <label><strong>Activity Cost</strong></label>
-            </div>
-            <div class="controls controls-row">
-              <input class="input-block-level" id="activityInfoCreate_ActivityCost" type="text">
-            </div>
-            <div class="controls controls-row">
-              <div class="btn-toolbar">
-                <button type="button" id="activityInfoCreate_CreateActivity" class="btn btn-primary pull-right">Create Activity <i class="icon-ok icon-white"></i></button>
-              </div>
-            </div>
-            <div class="controls controls-row">
-              <div class="btn-toolbar">
-                <button type="button" id="activityInfoCreate_CancelActivity" class="btn pull-right">Cancel <i class="icon-ban-circle"></i></button>
-              </div>
-            </div>
-          </fieldset>
-        </form>
-      </div>
-</template>
-
-<template name="activityInfoUpdate">
-</template>
-
-<template name="activityInfoDelete">
-</template>
-
 
 <template name="participantListFilters">
   <div id="participantListFilters">
@@ -408,29 +272,23 @@
 </template>
 
 <template name="participantList">
-  <div id="participantList">
-    <table class="table table-bordered">
+  <div class="span12" id="participantList">
+    Add new: <a href="#" id="xedit-CreateParticipant"></a>
+    <table class="table table-hover">
       <thead>
         <tr>
-          {{#if isDebug}}
-            <th class="vcenter">_id</th>
-          {{/if}}
           <th class="vcenter hcenter">#</th>
           <th class="vcenter">Name</th>
           <th class="vcenter">Paid</th>
           <th class="vcenter">Cost</th>
           <th class="vcenter hcenter">Status</th>
+          <th class="vcenter hcenter">Delete</th>
         </tr>
       </thead>
       <tbody>
         {{#if areNoParticipants}}
           <tr>
-            {{#if isDebug}}
-              <td class="vcenter text-error" colspan="5">No Participants Found</td>
-            {{/if}}
-            {{#unless isDebug}}
               <td class="vcenter text-error" colspan="4">No Participants Found</td>
-            {{/unless}}
           </tr>
         {{/if}}
         {{#unless areNoParticipants}}
@@ -445,149 +303,13 @@
 
 <template name="participant">
   <tr class="participant {{participantStatusStyle}} {{selectedParticipant}}">
-    {{#if isDebug}}
-      <td class="vcenter">{{_id}}</td>
-    {{/if}}
     <td class="vcenter hcenter"><h4>{{participantNumber}}</h4></td>
     <td class="vcenter">{{participantName}}</td>
-    <td class="vcenter">{{participantPaid}}</td>
-    <td class="vcenter">{{participantCost}}</td>
-    <td class="vcenter hcenter">
-      <div class="btn-group">
-        <a class="btn dropdown-toggle participant-status-dropdown-toggle" data-toggle="dropdown" href="#">{{participantStatus}}</a>
-        <ul class="dropdown-menu">
-          <li><a class="participantStatus" data-status="Paid" href="#"><i class="icon-sign-blank icon-participant-status-paid icon-participant-status-shadow"></i> Paid</a></li>
-          <li><a class="participantStatus" data-status="Not Paid" href="#"><i class="icon-sign-blank icon-participant-status-not-paid icon-participant-status-shadow"></i> Not Paid</a></li>
-        </ul>
-      </div>
-    </td>
+    <td class="vcenter"><a href="#" class="xedit-participantPaid">{{participantPaid}}</a></td>
+    <td class="vcenter"><a href="#" class="xedit-participantCost">{{participantCost}}</a></td>
+    <td class="vcenter hcenter"><a href="#" class="xedit-participantStatus">{{participantStatus}}</a></td>
+    <td class="vcenter hcenter participantDelete"><i class="icon-remove"></i></td>
   </tr>
-</template>
-
-<template name="participantInfo">
-  <div id="participantInfo">
-    <ul class="nav nav-tabs" id="participantInfoTabs">
-      <li><a href="#participantInfoCreate" data-toggle="tab">Create</a></li>
-      <li><a href="#participantInfoUpdate" data-toggle="tab">Update</a></li>
-      <li><a href="#participantInfoDelete" data-toggle="tab">Delete</a></li>
-    </ul>
-    <div class="tab-content">
-      <div class="tab-pane" id="participantInfoCreate">
-        <form>
-          <fieldset>
-            <div class="controls controls-row">
-              <label><strong>Participant Name</strong></label>
-              <input id="participantInfoCreate_ParticipantId" type="hidden">
-              <input class="input-block-level" id="participantInfoCreate_ParticipantName" type="text">
-            </div>
-            <div class="controls controls-row">
-              <label><strong>Paid</strong></label>
-              <input class="input-block-level" id="participantInfoCreate_ParticipantPaid" type="text">
-            </div>
-            <div class="controls controls-row">
-              <label><strong>Cost</strong></label>
-              <input class="input-block-level" id="participantInfoCreate_ParticipantCost" type="text">
-            </div>
-            <div class="controls controls-row">
-              <div class="btn-toolbar">
-                <button type="button" id="participantInfoCreate_CreateParticipant" class="btn btn-primary pull-right">Create Participant <i class="icon-ok icon-white"></i></button>
-              </div>
-            </div>
-            <div class="controls controls-row">
-              <div class="btn-toolbar">
-                <button type="button" id="participantInfoCreate_CancelParticipant" class="btn pull-right">Cancel <i class="icon-ban-circle"></i></button>
-              </div>
-            </div>
-          </fieldset>
-        </form>
-      </div>
-      <div class="tab-pane" id="participantInfoUpdate">
-        {{#if isParticipantSelected}}
-          {{#with participant}}
-            <table class="table table-bordered">
-              <tbody>
-                <tr class="participant {{participantStatusStyle}}">
-                  <td class="vcenter hcenter"><h2>{{participanteNumber}}</h2></td>
-                  <td class="vcenter hcenter">{{participantName}}</td>
-                  <td class="vcenter hcenter">Paid: {{participantPaid}}</td>
-                  <td class="vcenter hcenter">Cost: {{participantCost}}</td>
-                  <td class="vcenter hcenter">
-                    <div class="btn-group">
-                      <a class="btn dropdown-toggle participant-status-dropdown-toggle" data-toggle="dropdown" href="#">{{participantStatus}}</a>
-                      <ul class="dropdown-menu">
-                        <li><a class="participantStatus" data-status="Paid" href="#"><i class="icon-sign-blank icon-participant-status-paid icon-participant-status-shadow"></i> Paid</a></li>
-                        <li><a class="participantStatus" data-status="Not Paid" href="#"><i class="icon-sign-blank icon-participant-status-not-paid icon-participant-status-shadow"></i> Not Paid</a></li>
-                      </ul>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          {{/with}}
-          <form>
-            <fieldset>
-              {{#if isDebug}}
-                <div class="controls controls-row">
-                  <label><strong>Participant _id</strong></label>
-                  <input class="input-block-level" id="participantInfoUpdate_Participant_id" type="text" disabled>
-                </div>
-              {{/if}}
-              <div class="controls controls-row">
-                <label><strong>Participant Name</strong></label>
-                <input id="participantInfoUpdate_ParticipantId" type="hidden">
-                <input class="input-block-level" id="participantInfoUpdate_ParticipantName" type="text">
-              </div>
-              <div class="controls controls-row">
-                <label><strong>Paid</strong></label>
-                <input class="input-block-level" id="participantInfoUpdate_ParticipantPaid" type="text">
-              </div>
-              <div class="controls controls-row">
-                <label><strong>Cost</strong></label>
-                <input class="input-block-level" id="participantInfoUpdate_ParticipantCost" type="text">
-              </div>
-              <div class="controls controls-row">
-                <div class="btn-toolbar">
-                  <button type="button" id="participantInfoUpdate_UpdateParticipant" class="btn btn-primary pull-right">Update Participant <i class="icon-ok icon-white"></i></button>
-                </div>
-              </div>
-              <div class="controls controls-row">
-                <div class="btn-toolbar">
-                  <button type="button" id="participantInfoUpdate_CancelParticipant" class="btn pull-right">Cancel <i class="icon-ban-circle"></i></button>
-                </div>
-              </div>
-            </fieldset>
-          </form>
-        {{/if}}
-        {{#unless isParticipantSelected}}
-          <div>No Participant Selected</div>
-        {{/unless}}
-      </div>
-      <div class="tab-pane" id="participantInfoDelete">
-        {{#if isParticipantSelected}}
-          <form>
-            <fieldset>
-              {{#if isDebug}}
-                <div class="controls controls-row">
-                  <label><strong>Participant _id</strong></label>
-                  <input class="input-block-level" id="participantInfoDelete_Participant_id" type="text" disabled>
-                </div>
-                <div class="controls controls-row">
-                  <div class="btn-toolbar">
-              {{/if}}
-                    <button type="button" id="participantInfoDelete_DeleteParticipant" class="btn btn-danger pull-right">Delete Participant <i class="icon-remove icon-white"></i></button>
-              {{#if isDebug}}
-                  </div>
-                </div>
-              {{/if}}
-            </fieldset>
-          </form>
-        {{/if}}
-        {{#unless isParticipantSelected}}
-          <div>No Participant Selected</div>
-        {{/unless}}
-      </div>
-    </div>
-  </div>
 </template>
 
 <template name="userList">
@@ -595,9 +317,6 @@
     <table class="table table-bordered">
       <thead>
         <tr>
-          {{#if isDebug}}
-            <th class="vcenter">_id</th>
-          {{/if}}
           <th class="vcenter">USER</th>
           <th class="vcenter hcenter">ROLE</th>
         </tr>
@@ -613,9 +332,6 @@
 
 <template name="user">
   <tr class="user">
-    {{#if isDebug}}
-      <td class="vcenter">{{_id}}</td>
-    {{/if}}
     <td class="vcenter">{{email}}</td>
     {{#if isAdmin}}
       <td class="vcenter hcenter">
@@ -632,35 +348,4 @@
       <td class="vcenter hcenter">{{role}}</td>
     {{/unless}}
   </tr>
-</template>
-
-<template name="wysihtml5Toolbar">
-  <div class="btn-toolbar">
-    <div class="btn-group">
-      <button type="button" class="btn" data-wysihtml5-command="bold" title="Bold (CTRL+B)"><i class="icon-bold"></i></button>
-      <button type="button" class="btn" data-wysihtml5-command="italic" title="Italic (CTRL+I)"><i class="icon-italic"></i></button>
-      <button type="button" class="btn" data-wysihtml5-command="underline" title="Underline (CTRL+U)"><i class="icon-underline"></i></button>
-    </div>
-    <div class="btn-group">
-      <button type="button" class="btn" data-wysihtml5-command="insertUnorderedList" title="Unordered List"><i class="icon-list-ul"></i></button>
-      <button type="button" class="btn" data-wysihtml5-command="insertOrderedList" title="Ordered List"><i class="icon-list-ol"></i></button>
-    </div>
-    <div class="btn-group">
-      <button type="button" class="btn" data-wysihtml5-command="Outdent" title="Indent Left"><i class="icon-indent-left"></i></button>
-      <button type="button" class="btn" data-wysihtml5-command="Indent" title="Indent Right"><i class="icon-indent-right"></i></button>
-    </div>
-    <!--
-    <div class="btn-group">
-      <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">Color</a>
-      <ul class="dropdown-menu">
-        <li><a data-wysihtml5-command="foreColor" data-wysihtml5-command-value="red" href="#">Red</a></li>
-        <li><a data-wysihtml5-command="foreColor" data-wysihtml5-command-value="green" href="#">Green</a></li>
-        <li><a data-wysihtml5-command="foreColor" data-wysihtml5-command-value="blue" href="#">Blue</a></li>
-      </ul>
-    </div>
-    -->
-    <div class="btn-group">
-      <button type="button" class="btn" data-wysihtml5-action="change_view" title="Show HTML"><i class="icon-pencil"></i></button>
-    </div>
-  </div>
 </template>

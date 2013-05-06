@@ -2,16 +2,13 @@
 Activities = new Meteor.Collection("activities");
 Locations = new Meteor.Collection("locations");
 Participants = new Meteor.Collection("participants");
+locs = [];
 
 defaultToastrOptions = {fadeIn: 250, fadeOut: 250, timeOut: 3000, extendedTimeOut: 250};
 lengthyToastrOptions = {fadeIn: 250, fadeOut: 250, timeOut: 10000, extendedTimeOut: 250};
 confirmToastrOptions = {fadeIn: 250, fadeOut: 250, timeOut: 0, extendedTimeOut: 0, onclick: null, tapToDismiss: false};
 
-wysihtml5Enabled = false; // Set to false to disable the wysihtml5 editor
-var wysihtml5EditorA, wysihtml5EditorB, wysihtml5EditorC, wysihtml5EditorD, wysihtml5EditorE, wysihtml5EditorF;
-
 function initMeteorSessionVariables() {
-  Session.set("debug", false); // set to true to show debug related info
   Session.set("page", "home"); // home is the default page
   Session.set("selected_aid", null);
   Session.set("selected_pid", null);
@@ -24,6 +21,8 @@ function initMeteorSessionVariables() {
   Session.set("help_after_login", null);
   Session.set("help_filter_by_participant_status", null);
   Session.set("saving_new_activity", false);
+  Session.set("saving_new_participant", false);
+  Session.set("updating_participant", false);
 }
 
 function toastrMsg(error, goodMsg, badMsg) {
@@ -48,6 +47,10 @@ Meteor.startup(function () {
   $.blockUI.defaults.overlayCSS.backgroundColor = "#fff";
 
   Meteor.autorun(function () {
+    Meteor.subscribe("locations", function onComplete() {
+      // Subscription Complete!
+      locs = Locations.find().fetch();
+    });
     if (Meteor.user()) {
       Meteor.subscribe("userData", function onComplete() {
         // Subscription Complete!
@@ -116,10 +119,6 @@ Meteor.startup(function () {
 });
 
 // Global Handlebars Helpers --------------------------------------------
-Handlebars.registerHelper("isDebug", function() {
-  return Session.get("debug");
-});
-
 Handlebars.registerHelper("isAdmin", function() {
   return Meteor.user().role === "admin";
 });
@@ -167,6 +166,14 @@ Template.navbar.events({
   "click a[href=\"#users\"]": function (event) {
     event.preventDefault();
     Session.set("page", "users");
+  },
+  "click a[href=\"#locations\"]": function (event) {
+    event.preventDefault();
+    Session.set("page", "locations");
+  },
+  "click a[href=\"#titles\"]": function (event) {
+    event.preventDefault();
+    Session.set("page", "titles");
   }
 });
 
@@ -200,6 +207,7 @@ Template.activityList.rendered = function() {
               $("#activityInfoTabs a[href=\"#activityInfoOverview\"]").tab("show");
             }
             Session.set("saving_new_activity", false);
+            $("#xedit-CreateActivityTitle").setValue("");
           });
         }
       }
@@ -280,20 +288,56 @@ Template.activity.helpers({
 });
 
 Template.activityInfo.rendered = function() {
-  $("#xedit-activityInfoOverview_ActivityTitle").editable({mode: "inline", anim: "1", emptytext: "Not set", type:"text"});
+  
+  $("#xedit-activityInfoOverview_ActivityTitle").editable({mode: "inline", 
+                                                          emptytext: "Not set", 
+                                                          type:"typeahead",
+                                                          source: _.uniq(_.pluck(Activities.find({},{fields: {_id:0, activityTitle: 1}}).fetch(),"activityTitle"))
+                                                          });
+
   $("#xedit-activityInfoOverview_ActivityLocation").editable({ mode: "inline",
-                                                            anim: "1",
                                                             emptytext: "Select or add",
-                                                            type:"select2",
-                                                            select2: {maximumSelectionSize: 1, placeholder: "Select or add"},
-//                                                            source: Locations.find()
-                                                            source: [{id: "Extreme Sports Bar", text: "Extreme Sports Bar"}, {id: "Westin", text: "Westin"}, {id: "InOrbit Mall", text: "InOrbit Mall"}, {id: "Rooftop Garden", text: "Rooftop Garden"}, {id: "Madhapur", text: "Madhapur"}, {id: "Coffee Day", text: "Coffee Day"}]
+                                                            type:"typeahead",
+                                                            source: _.uniq(_.pluck(Activities.find({},{fields: {_id:0, activityLocation: 1}}).fetch(),"activityLocation"))
   });
-  $("#xedit-activityInfoOverview_ActivityDate").editable({mode: "inline", anim: "1", emptytext: "Not set", type:"date", format:"yyyy-mm-dd", viewformat:"dd/mm/yy"});
-  $("#xedit-activityInfoOverview_ActivityCost").editable({mode: "inline", anim: "1", emptytext: "Not set", type:"number"});
+/*
+  $("#xedit-activityInfoOverview_ActivityLocation").editable({ mode: "inline",
+    emptytext: "Select or add",
+    type:"typeahead",
+    typeahead: {
+      source: function (query, process){
+          return _.uniq(_.pluck(Activities.find({},{fields: {_id:0, activityTitle: 1}}).fetch(),"activityTitle"));
+      } ,
+      updater: function(item) {
+        selectedLocation = map[item].location;
+      },
+      matcher: function (item) {
+        if (item.toLowerCase().indexOf(this.query.trim().toLowerCase()) != -1) {
+          return true;
+        }
+      },
+      sorter: function (items) {
+        return items.sort();
+      } 
+    } 
+
+  });
+*/
+  $("#xedit-activityInfoOverview_ActivityDate").editable({mode: "inline", emptytext: "Not set", type:"date", format:"dd M yy", viewformat:"dd M yy"});
+
+  $("#xedit-activityInfoOverview_ActivityCost").editable({mode: "inline", emptytext: "Not set", type:"number"});
+
+  $("#xedit-activityInfoOverview_ActivityTitle").on("click", function (e) {
+    $("#xedit-activityInfoOverview_ActivityTitle").next().find("input").select();
+  });
+
+  $("#xedit-activityInfoOverview_ActivityLocation").on("click", function (e) {
+    $("#xedit-activityInfoOverview_ActivityLocation").next().find("input").select();
+  });
 
   $("#xedit-activityInfoOverview_ActivityTitle").on("save", function (e, params) {
-/*    if (params.newValue.stripHTML() !== "") {
+    console.log(params.newValue)
+    if (params.newValue.stripHTML() !== "") {
       var activityTitle = params.newValue.stripHTML();
       Activities.update(Session.get("selected_aid"), {$set: {activityTitle: activityTitle}}, function (error) {
         toastrMsg(error, "Title updated");
@@ -301,12 +345,13 @@ Template.activityInfo.rendered = function() {
     }
     else {
       toastr.warning("", "Please enter an Activity title", defaultToastrOptions);
+      $("#xedit-activityInfoOverview_ActivityTitle").activate();
       return false;
-    } */
-   console.log(params.newValue);
+    } 
   });
 
   $("#xedit-activityInfoOverview_ActivityLocation").on("save", function (e, params) {
+    console.log(params.newValue.stripHTML());
     if (params.newValue.stripHTML() !== "") {
       var activityLocation = params.newValue.stripHTML();
       Activities.update(Session.get("selected_aid"), {$set: {activityLocation: activityLocation}},  function (error) {
@@ -315,6 +360,7 @@ Template.activityInfo.rendered = function() {
     }
     else {
       toastr.warning("", "Please enter the location", defaultToastrOptions);
+      $("#xedit-activityInfoOverview_ActivityLocation").activate();
     }
   });
 
@@ -330,12 +376,6 @@ Template.activityInfo.rendered = function() {
     }
   });
 
-//  $("#xedit-activityInfoOverview_ActivityDate").on("shown", function (e) {
-//    var editable = $(this).data("editable");
-//    console.log($("#activityInfoCreate_ActivityDate").val());
-//    editable.input.$input.val(new Date($("#activityInfoCreate_ActivityDate").text()));
-//  });
-
   $("#xedit-activityInfoOverview_ActivityCost").on("save", function (e, params) {
     console.log(params.newValue)
     if (params.newValue.stripHTML() !== "") {
@@ -349,121 +389,10 @@ Template.activityInfo.rendered = function() {
     }
   });
 
-  if (Session.get("selected_aid")) {
-    var activity = Activities.findOne(Session.get("selected_aid"));
-//    Deps.flush();
-    if (activity) {
-      if (Meteor.user().role === "admin") {
-        $("#activityInfoCreate_ActivityTitle").val("");
-        $("#activityInfoCreate_ActivityLocation").val("");
-        $("#activityInfoCreate_ActivityCost").val("");
-        $("#activityInfoUpdate_ActivityTitle").val(activity.activityTitle);
-        $("#activityInfoUpdate_ActivityLocation").val(activity.activityLocation);
-        $("#activityInfoUpdate_ActivityCost").val(activity.activityCost);
-        $("#activityInfoTabs a[href=\"#activityInfoOverview\"]").tab("show");
-      }
-      else {
-        $("#activityInfoTabs a[href=\"#activityInfoOverview\"]").tab("show");
-      }
-    }
-  }
-  else {
-//    Deps.flush();
-    if (Meteor.user().role === "admin") {
-      $("#activityInfoCreate_ActivityTitle").val("");
-      $("#activityInfoCreate_ActivityLocation").val("");
-      $("#activityInfoTabs a[href=\"#activityInfoCreate\"]").tab("show");
-    }
-    else {
-      $("#activityInfoTabs a[href=\"#activityInfoOverview\"]").tab("show");
-    }
-  }
+  $("#activityInfoTabs a[href=\"#activityInfoOverview\"]").tab("show");
 };
 
 Template.activityInfo.events({
-  "click #activityInfoCreate_CancelActivity": function (event) {
-    $("#activityInfoCreate_ActivityTitle").val("");
-    $("#activityInfoCreate_ActivityLocation").val("");
-    $("#activityInfoCreate_ActivityCost").val("");
-    if (Session.get("selected_aid")) {
-      $("#activityInfoTabs a[href=\"#activityInfoOverview\"]").tab("show");
-    }
-  },
-  "click #activityInfoUpdate_UpdateActivity": function (event) {
-    if ($("#activityInfoUpdate_ActivityTitle").val().stripHTML() !== "") {
-      var activityTitle = $("#activityInfoUpdate_ActivityTitle").val().stripHTML();
-      var activitycost = $("#activityInfoUpdate_ActivityCost").val().stripHTML();
-      var ActivityLocation = $("#activityInfoUpdate_ActivityLocation").val().stripHTML();
-      Activities.update(Session.get("selected_aid"), {$set: {activityTitle: activityTitle, activityLocation: activityLocation, activityCost: activityCost}}, function (error) {
-        if (error) {
-          toastr.error("The activity was not updated", "Error", defaultToastrOptions);
-        }
-        else {
-          toastr.success("", "Activity updated", defaultToastrOptions);
-        }
-      });
-    }
-    else {
-      toastr.warning("", "Please enter an Activity title", defaultToastrOptions);
-    }
-  },
-  "click #activityInfoUpdate_CancelActivity": function (event) {
-    if (Session.get("selected_aid")) {
-      var activity = Activities.findOne(Session.get("selected_aid"));
-      if (Session.get("debug")) {
-        $("#activityInfoUpdate_Activity_id").val(Session.get("selected_aid"));
-      }
-      $("#activityInfoUpdate_ActivityTitle").val(activity.activityTitle);
-      $("#activityInfoUpdate_ActivityCost").val(activity.activityCost);
-      $("#activityInfoUpdate_ActivityLocation").val(activity.ActivityLocation);
-      $("#activityInfoTabs a[href=\"#activityInfoOverview\"]").tab("show");
-    }
-    else {
-      if (Meteor.user().role === "admin") {
-        $("#activityInfoTabs a[href=\"#activityInfoCreate\"]").tab("show");
-      }
-      else {
-        $("#activityInfoTabs a[href=\"#activityInfoOverview\"]").tab("show");
-      }
-    }
-  },
-  "click #activityInfoDelete_DeleteActivity": function (event) {
-    if (Session.get("selected_aid")) {
-      $.blockUI();
-      var $toast = toastr.error("", "<div><button type=\"button\" id=\"deleteActivityYesBtn\" class=\"btn btn-primary\">Yes</button><button type=\"button\" id=\"deleteActivityNoBtn\" class=\"btn\" style=\"margin: 0 8px 0 8px\">No</button> Delete Activity?</div>", confirmToastrOptions);
-      if ($toast.find("#deleteActivityYesBtn").length) {
-        $toast.delegate("#deleteActivityYesBtn", "click", function () {
-          resetParticipant();
-          var activityParticipants = Participants.find({_aid: Session.get("selected_aid")});
-          activityParticipants.forEach(function (participant) {
-            Participants.remove({_id: participant._id}, function (error) {
-              if (error) {
-                toastr.error("There was an problem deleting a participant associated with this activity", "Error", defaultToastrOptions);
-              }
-            });
-          });
-          Activities.remove({_id: Session.get("selected_aid")}, function (error) {
-            if (error) {
-              toastr.error("The activity was not deleted", "Error", defaultToastrOptions);
-            }
-            else {
-              toastr.success("", "Activity deleted", defaultToastrOptions);
-              resetActivity();
-              $.unblockUI();
-              $toast.remove();
-            }
-          });
-        });
-      }
-      if ($toast.find("#deleteActivityNoBtn").length) {
-        $toast.delegate("#deleteActivityNoBtn", "click", function () {
-          $.unblockUI();
-          $toast.remove();
-          $("#activityInfoTabs a[href=\"#activityInfoOverview\"]").tab("show");
-        });
-      }
-    }
-  }
 });
 
 Template.activityInfo.helpers({
@@ -477,78 +406,9 @@ Template.activityInfo.helpers({
   getParticipantStatusCount: function (participantStatus) {
     return Session.get("selected_aid") ? Participants.find({_aid: Session.get("selected_aid"), participantStatus: participantStatus}).count() : 0;
   },
-  activityUsers: function () {
-    return Meteor.users.find({}, {sort: {"emails.0.address": 1}});
-  },
-  hasActivityLocation: function() {
-    return (this && this.activityLocation) ? true : false;
-  },
   formattedActivityDate: function () {
-    return moment(this.activityDate).format("MMMM Do YYYY");
-  }
-});
-
-Template.activityInfoCreate.rendered = function() {
-  $("#activityInfoCreate_ActivityTitle").val("");
-  $("#activityInfoCreate_ActivityLocation").val("");
-  $("#activityInfoCreate_ActivityCost").val("");
-};
-
-Template.activityInfoCreate.events({
-  "click #activityInfoCreate_CreateActivity": function (event) {
-    if ($("#activityInfoCreate_ActivityTitle").val().stripHTML() !== "") {
-      var activityTitle = $("#activityInfoCreate_ActivityTitle").val().stripHTML();
-      var activityLocation = $("#activityInfoCreate_ActivityLocation").val().stripHTML();
-      var activityCost = $("#activityInfoCreate_ActivityCost").val().stripHTML();
-      var activityCreatedDate = (new Date()).getTime();
-      Activities.insert({ activityTitle: activityTitle,
-                          activityLocation: activityLocation,
-                          activityCost: activityCost,
-                          activityCreatedDate: activityCreatedDate,
-                          lastParticipantNumber: 0,
-                          users: [{_id: Meteor.user()._id}]},
-                          function (error, result) {
-                            if (error) {
-                              toastr.error("The activity was not created", "Error", defaultToastrOptions);
-                            }
-                            else {
-                              Session.set("selected_aid", result);
-                              toastr.success("", "Activity created", defaultToastrOptions);
-                              $("#activityInfoTabs a[href=\"#activityInfoOverview\"]").tab("show");
-                            }
-                          });
-    }
-    else {
-      toastr.warning("", "Please enter an activity title", defaultToastrOptions);
-    }
+    return moment(this.activityDate).format("DD MMM YY");
   },
-  "click #activityInfoCreate_CancelActivity": function (event) {
-    $("#activityInfoCreate_ActivityTitle").val("");
-    $("#activityInfoCreate_ActivityLocation").val("");
-    $("#activityInfoCreate_ActivityCost").val("");
-    if (Session.get("selected_aid")) {
-      $("#activityInfoTabs a[href=\"#activityInfoOverview\"]").tab("show");
-    }
-  },
-});
-
-Template.activityInfoCreate.helpers({
-  activity: function () {
-    var activity = Activities.findOne(Session.get("selected_aid"));
-    return activity ? activity : {};
-  },
-  getParticipantCount: function () {
-    return Session.get("selected_aid") ? Participants.find({_aid: Session.get("selected_aid")}).count() : 0;
-  },
-  getParticipantStatusCount: function (participantStatus) {
-    return Session.get("selected_aid") ? Participants.find({_aid: Session.get("selected_aid"), participantStatus: participantStatus}).count() : 0;
-  },
-  activityUsers: function () {
-    return Meteor.users.find({}, {sort: {"emails.0.address": 1}});
-  },
-  hasActivityLocation: function() {
-    return (this && this.activityLocation) ? true : false;
-  }
 });
 
 Template.participantListFilters.events({
@@ -568,6 +428,56 @@ Template.participantListFilters.helpers({
   }
 });
 
+Template.participantList.rendered = function() {
+//  $("#xedit-CreateParticipant").editable({mode: "inline", anim: "1", emptytext: "Select Participant", type:"text"});
+  $("#xedit-CreateParticipant").editable({ mode: "inline",
+                                          emptytext: "Select or add",
+                                          type:"typeahead",
+                                          source: _.uniq(_.pluck(Meteor.users.find({},{fields: {_id:0, name: 1}}).fetch(),"name"))
+  });
+
+
+  $("#xedit-CreateActivityTitle").on("click", function (e, params) {
+    Session.set("new_participant_saved", null);
+  });
+
+  $("#xedit-CreateParticipant").on("save", function (e, params) {
+    if (params.newValue.stripHTML() !== "") {
+      var activity = Activities.findOne(Session.get("selected_aid"));
+      var lastParticipantNumber = activity.lastParticipantNumber;
+      var nextParticipantNumber = lastParticipantNumber + 1;
+      var participantName = params.newValue.stripHTML();
+      var participantPaid = 0;
+      var participantCost = 0;
+      var participantCreatedDate = (new Date()).getTime();
+      if (!Session.get("saving_new_participant")){
+        Session.set("saving_new_participant", true);
+        Activities.update(Session.get("selected_aid"), {$set: {lastParticipantNumber: nextParticipantNumber}}, function (error) {
+          if (error) {
+            toastr.error("The participant was not created", "Error", defaultToastrOptions);
+          }
+          else {
+            Participants.insert({_aid: Session.get("selected_aid"), participantNumber: nextParticipantNumber, participantName: participantName, participantPaid: participantPaid, participantCost: participantCost, participantStatus: "Not Paid", participantCreatedDate: participantCreatedDate}, function (error, result) {
+              if (error) {
+                toastr.error("The participant was not created", "Error", defaultToastrOptions);
+              }
+              else {
+                Session.set("selected_pid", result);
+                Session.set("saving_new_participant", false);
+                toastr.success("", "Participant created", defaultToastrOptions);
+              }
+            });
+            Session.set("saving_new_participant", false);
+//            $("#xedit-CreateParticipant").next().find("input").val("");
+          }
+        });
+      }
+    }
+    else {
+      toastr.warning("", "Please enter a participant name", defaultToastrOptions);
+    }
+  });
+}
 Template.participantList.events({
 
 });
@@ -588,6 +498,75 @@ Template.participantList.helpers({
   }
 });
 
+Template.participant.rendered = function() {
+  $(".xedit-participantPaid").editable({mode: "inline", emptytext: "Not set", type:"number"});
+  $(".xedit-participantCost").editable({mode: "inline", emptytext: "Not set", type:"number"});
+  $(".xedit-participantStatus").editable({mode: "inline", emptytext: "Not set", type:"select", source: ["Paid", "Not Paid"]});
+
+  $(".xedit-participantPaid").on("click", function (e) {
+    $(e.currentTarget).next().find("input").select();
+  });
+
+  $(".xedit-participantCost").on("click", function (e) {
+    $(e.currentTarget).next().find("input").select();
+  });
+
+  $(".xedit-participantPaid").on("save", function (e, params) {
+    console.log(params.newValue);
+    console.log(Session.get("selected_pid"));
+    if (!Session.get("updating_participant")){
+      Session.set("updating_participant", true);
+      if (params.newValue !== "") {
+        var participantPaid = params.newValue;
+        Participants.update(Session.get("selected_pid"), {$set: {participantPaid: participantPaid}}, function (error) {
+          toastrMsg(error, "Amount updated");
+          Session.set("updating_participant", false);
+        });
+      }
+      else {
+        toastr.warning("", "Please enter the amount", defaultToastrOptions);
+      }
+    }
+  });
+
+  $(".xedit-participantCost").on("save", function (e, params) {
+    console.log(params.newValue);
+    console.log(Session.get("selected_pid"));
+    if (!Session.get("updating_participant")){
+      Session.set("updating_participant", true);
+      if (params.newValue !== "") {
+        var participantCost = params.newValue;
+        Participants.update(Session.get("selected_pid"), {$set: {participantCost: participantCost}}, function (error) {
+          toastrMsg(error, "Amount updated");
+          Session.set("updating_participant", false);
+        });
+      }
+      else {
+        toastr.warning("", "Please enter the amount", defaultToastrOptions);
+      }
+    }
+  });
+
+  $(".xedit-participantStatus").on("save", function (e, params) {
+    console.log(params.newValue);
+    console.log(Session.get("selected_pid"));
+    if (!Session.get("updating_participant")){
+      Session.set("updating_participant", true);
+      if (params.newValue !== "") {
+        var participantStatus = params.newValue;
+        Participants.update(Session.get("selected_pid"), {$set: {participantStatus: participantStatus}}, function (error) {
+          toastrMsg(error, "Status updated");
+          Session.set("updating_participant", false);
+        });
+      }
+      else {
+        toastr.warning("", "Please enter the amount", defaultToastrOptions);
+      }
+    }
+  });
+
+}
+
 Template.participant.events({
   "click a.participantStatus": function (event) {
     event.preventDefault();
@@ -606,154 +585,10 @@ Template.participant.events({
     var isNull = Session.equals("selected_pid", null) ? true : false;
       if (Session.get("selected_pid") !== this._id) {
         Session.set("selected_pid", this._id);
-        if (!isNull) { // Handle participant selection from another participant
-          var participant = Participants.findOne(Session.get("selected_pid"));
-//          Deps.flush();
-          if (participant) {
-            if (Session.get("debug")) {
-              $("#participantInfoUpdate_Participant_id").val(Session.get("selected_pid"));
-              $("#participantInfoDelete_Participant_id").val(Session.get("selected_pid"));
-            }
-            $("#participantInfoCreate_ParticipantName").val("");
-            $("#participantInfoCreate_ParticipantPaid").val("");
-            $("#participantInfoCreate_ParticipantCost").val("");
-            $("#participantInfoUpdate_ParticipantNumber").val(participant.participantNumber);
-            $("#participantInfoUpdate_ParticipantCreatedDate").val((new Date(participant.participantCreatedDate)).f("MM/dd/yyyy HH:mm a"));
-            $("#participantInfoUpdate_ParticipantName").val(participant.participantName);
-            $("#participantInfoUpdate_ParticipantPaid").val(participant.participantPaid);
-            $("#participantInfoUpdate_ParticipantCost").val(participant.participantCost);
-            $("#participantInfoTabs a[href=\"#participantInfoUpdate\"]").tab("show");
-          }
-        }
-        if (matchMedia("only screen and (max-width: 979px)").matches) {
-          $.scrollTo($("#participantInfo"), 500, {offset: -10}); // Small screens
-        }
-        else {
-          $.scrollTo($("#participantInfo"), 500, {offset: -51}); // Large screens
-        }
-      }
-      else {
-        resetParticipant();
-      }
-    }
-  }
-});
-
-Template.participant.helpers({
-  selectedParticipant: function () {
-    return Session.equals("selected_pid", this._id) ? "selected" : "";
-  },
-  participantStatusStyle: function () {
-    return this ? (this.participantStatus).toLowerCase() : "";
-  },
-  formatMilliseconds: function (milliseconds) {
-    return milliseconds ? (new Date(milliseconds)).f("MM/dd/yyyy HH:mm a") : "";
-  }
-});
-
-Template.participantInfo.rendered = function() {
-  if (Session.get("selected_pid")) {
-    var participant = Participants.findOne(Session.get("selected_pid"));
-//    Deps.flush();
-    if (participant) {
-      if (Session.get("debug")) {
-        $("#participantInfoUpdate_Participant_id").val(Session.get("selected_pid"));
-        $("#participantInfoDelete_Participant_id").val(Session.get("selected_pid"));
-      }
-      $("#participantInfoCreate_ParticipantName").val("");
-      $("#participantInfoCreate_ParticipantPaid").val("");
-      $("#participantInfoCreate_ParticipantCost").val("");
-      $("#participantInfoUpdate_ParticipantNumber").val(participant.participantNumber);
-      $("#participantInfoUpdate_ParticipantCreatedDate").val((new Date(participant.participantCreatedDate)).f("MM/dd/yyyy HH:mm a"));
-      $("#participantInfoUpdate_ParticipantName").val(participant.participantName);
-      $("#participantInfoUpdate_ParticipantPaid").val(participant.participantPaid);
-      $("#participantInfoUpdate_ParticipantCost").val(participant.participantCost);
-      $("#participantInfoTabs a[href=\"#participantInfoUpdate\"]").tab("show");
-    }
-  }
-  else {
-//    Deps.flush();
-    $("#participantInfoCreate_ParticipantName").val("");
-    $("#participantInfoCreate_ParticipantPaid").val("");
-    $("#participantInfoCreate_ParticipantCost").val("");
-    $("#participantInfoTabs a[href=\"#participantInfoCreate\"]").tab("show");
-  }
-  createWaypoints();
-};
-
-Template.participantInfo.events({
-  "click a.participantStatus": function (event) {
-    event.preventDefault();
-    Session.set("selected_pid", this._id);
-    Participants.update(Session.get("selected_pid"), {$set: {participantStatus: event.currentTarget.getAttribute("data-status")}}, function (error) {
-      if (error) {
-        toastr.error("The participant was not updated", "Error", defaultToastrOptions);
-      }
-      else {
-        toastr.success("", "Participant updated", defaultToastrOptions);
-      }
-    });
-  },
-  "click #participantInfoCreate_CreateParticipant": function (event) {
-    if ($("#participantInfoCreate_ParticipantName").val().stripHTML() !== "") {
-      var activity = Activities.findOne(Session.get("selected_aid"));
-      var lastParticipantNumber = activity.lastParticipantNumber;
-      var nextParticipantNumber = lastParticipantNumber + 1;
-      var participantName = $("#participantInfoCreate_ParticipantName").val().stripHTML();
-      var participantPaid = $("#participantInfoCreate_ParticipantPaid").val().stripHTML();
-      var participantCost = $("#participantInfoCreate_ParticipantCost").val().stripHTML();
-      var participantCreatedDate = (new Date()).getTime();
-      Activities.update(Session.get("selected_aid"), {$set: {lastParticipantNumber: nextParticipantNumber}}, function (error) {
-        if (error) {
-          toastr.error("The participant was not created", "Error", defaultToastrOptions);
-        }
-        else {
-          Participants.insert({_aid: Session.get("selected_aid"), participantNumber: nextParticipantNumber, participantName: participantName, participantPaid: participantPaid, participantCost: participantCost, participantStatus: "Not Paid", participantCreatedDate: participantCreatedDate}, function (error, result) {
-            if (error) {
-              toastr.error("The participant was not created", "Error", defaultToastrOptions);
-            }
-            else {
-              Session.set("selected_pid", result);
-              toastr.success("", "Participant created", defaultToastrOptions);
-            }
-          });
-        }
-      });
-    }
-    else {
-      toastr.warning("", "Please enter a participant name", defaultToastrOptions);
-    }
-  },
-  "click #participantInfoCreate_CancelParticipant": function (event) {
-    $("#participantInfoCreate_ParticipantName").val("");
-    $("#participantInfoCreate_ParticipantPaid").val("");
-    $("#participantInfoCreate_ParticipantCost").val("");
-  },
-  "click #participantInfoUpdate_UpdateParticipant": function (event) {
-    if (Session.get("selected_pid")) {
-      if ($("#participantInfoUpdate_ParticipantName").val().stripHTML() !== "") {
-        var participantName = $("#participantInfoUpdate_ParticipantName").val().stripHTML();
-        var participantPaid = $("#participantInfoUpdate_ParticipantPaid").val().stripHTML();
-        var participantCost = $("#participantInfoUpdate_ParticipantCost").val().stripHTML();
-        Participants.update(Session.get("selected_pid"), {$set: {participantName: participantName, participantPaid: participantPaid, participantCost: participantCost}}, function (error) {
-          if (error) {
-            toastr.error("The participant was not updated", "Error", defaultToastrOptions);
-          }
-          else {
-            toastr.success("", "Participant updated", defaultToastrOptions);
-          }
-        });
-      }
-      else {
-        toastr.warning("", "Please enter a participant name", defaultToastrOptions);
       }
     }
   },
-  "click #participantInfoUpdate_CancelParticipant": function (event) {
-    resetParticipant();
-    $("#participantInfoTabs a[href=\"#participantInfoCreate\"]").tab("show");
-  },
-  "click #participantInfoDelete_DeleteParticipant": function (event) {
+  "click .participantDelete": function(event) {
     if (Session.get("selected_pid")) {
       $.blockUI();
       var $toast = toastr.error("", "<div><button type=\"button\" id=\"deleteParticipantYesBtn\" class=\"btn btn-primary\">Yes</button><button type=\"button\" id=\"deleteParticipantNoBtn\" class=\"btn\" style=\"margin: 0 8px 0 8px\">No</button> Delete Participant?</div>", confirmToastrOptions);
@@ -783,19 +618,18 @@ Template.participantInfo.events({
   }
 });
 
-Template.participantInfo.helpers({
-  participant: function () {
-    var participant = Participants.findOne(Session.get("selected_pid"));
-    return participant ? participant : {};
+Template.participant.helpers({
+  selectedParticipant: function () {
+    return Session.equals("selected_pid", this._id) ? "selected" : "";
   },
   participantStatusStyle: function () {
-    var participant = Participants.findOne(Session.get("selected_pid"));
-    return participant ? (participant.participantStatus).toLowerCase() : "";
+    return this ? (this.participantStatus).toLowerCase() : "";
   },
   formatMilliseconds: function (milliseconds) {
     return milliseconds ? (new Date(milliseconds)).f("MM/dd/yyyy HH:mm a") : "";
   }
 });
+
 
 Template.userList.rendered = function() {
 
@@ -832,17 +666,6 @@ Template.user.helpers({
   }
 });
 
-Template.wysihtml5Toolbar.rendered = function() {
-
-};
-
-Template.wysihtml5Toolbar.events({
-
-});
-
-Template.wysihtml5Toolbar.helpers({
-
-});
 // Templates ------------------------------------------------------------
 
 // Functions ------------------------------------------------------------

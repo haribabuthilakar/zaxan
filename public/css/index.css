@@ -49,6 +49,11 @@
   cursor: pointer;
 }
 
+.participantDelete {
+  cursor: pointer;
+  color: #900;
+}
+
 .participant.paid td,
 #activityInfoOverview td.paid {
   background-color: #E5FFE5;
